@@ -12,4 +12,5 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - run: npm install -g @bubblewrap/cli
+      - run: bubblewrap init --manifest https://comic-universe.base44.app/manifest.json
       - run: bubblewrap build --skipPwaValidation
