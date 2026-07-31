@@ -6,11 +6,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - run: npm install -g @bubblewrap/cli
-      - run: bubblewrap init --manifest https://comic-universe.base44.app/manifest.json
-      - run: bubblewrap build --skipPwaValidation
+      - name: Generate keystore
+        run: |
+          keytool -genkey -v -keystore android.keystore \
+            -alias comicuniverse -keyalg RSA -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Comic Universe, OU=App, O=ComicUniverse, L=TX, S=TX, C=US" \
+            -storepass comicuniverse -keypass comicuniverse
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+      - name: Build TWA
+        run: bubblewrap build --skipPwaValidation
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: comic-universe-aab
+          path: app-release-bundle.aab
