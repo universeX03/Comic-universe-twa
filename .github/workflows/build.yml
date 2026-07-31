@@ -11,19 +11,22 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Generate keystore
+      - name: Install Node & Bubblewrap
         run: |
-          keytool -genkey -v -keystore android.keystore \
-            -alias comicuniverse -keyalg RSA -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Comic Universe, OU=App, O=ComicUniverse, L=TX, S=TX, C=US" \
-            -storepass comicuniverse -keypass comicuniverse
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
-      - name: Build TWA
-        run: bubblewrap build --skipPwaValidation
+          npm install -g @bubblewrap/cli
+          bubblewrap --version
+      - name: Init TWA project
+        run: |
+          echo '{"version":1}' > bubblewrap-user-config.json
+          bubblewrap init --manifest https://app.base44.com/apps/6a554529118de8791293ae9e/manifest.json --directory twa-project 2>&1 | head -5 || true
+          ls -la
+      - name: Build with Gradle directly
+        working-directory: twa-project
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: comic-universe-aab
-          path: app-release-bundle.aab
+          path: twa-project/app/build/outputs/bundle/release/*.aab
